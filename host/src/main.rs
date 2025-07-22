@@ -26,20 +26,27 @@ fn main() {
     // creates an ExecutorEnvBuilder. When you're done adding input, call
     // ExecutorEnvBuilder::build().
 
+    let mut inputs = vec![];
+
+    for _ in 0..2 {
+
+
     // Generate a random ed25519 keypair and sign the message.
     let signing_key: SigningKey = SigningKey::generate(&mut OsRng);
     let verifying_key: VerifyingKey = signing_key.verifying_key();
     let message = b"This is a message that will be signed, and verified within the zkVM".to_vec();
     let signature: Signature = signing_key.sign(&message);
 
+    inputs.push((
+        verifying_key.to_bytes(),
+        message.clone(),
+        signature.to_bytes().to_vec(),
+    ));
+
+    }
+
     let env = ExecutorEnv::builder()
-        .write(&1)
-        .unwrap()
-        .write(verifying_key.as_bytes())
-        .unwrap()
-        .write(&message)
-        .unwrap()
-        .write(&signature.to_bytes().to_vec())
+        .write(&inputs)
         .unwrap()
         .build()
         .unwrap();
