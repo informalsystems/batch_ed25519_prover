@@ -5,6 +5,9 @@ use methods::{
 };
 use risc0_zkvm::{default_prover, ExecutorEnv};
 
+use ed25519_dalek::{Signature, Signer, SigningKey, VerifyingKey};
+use rand_core::OsRng;
+
 fn main() {
     // Initialize tracing. In order to view logs, run `RUST_LOG=info cargo run`
     tracing_subscriber::fmt()
@@ -23,10 +26,20 @@ fn main() {
     // creates an ExecutorEnvBuilder. When you're done adding input, call
     // ExecutorEnvBuilder::build().
 
-    // For example:
-    let input: u32 = 15 * u32::pow(2, 27) + 1;
+    // Generate a random ed25519 keypair and sign the message.
+    let signing_key: SigningKey = SigningKey::generate(&mut OsRng);
+    let verifying_key: VerifyingKey = signing_key.verifying_key();
+    let message = b"This is a message that will be signed, and verified within the zkVM".to_vec();
+    let signature: Signature = signing_key.sign(&message);
+
     let env = ExecutorEnv::builder()
-        .write(&input)
+        .write(&1)
+        .unwrap()
+        .write(verifying_key.as_bytes())
+        .unwrap()
+        .write(&message)
+        .unwrap()
+        .write(&signature.to_bytes().to_vec())
         .unwrap()
         .build()
         .unwrap();

@@ -8,3 +8,8 @@ methods = { path = "../methods" }
 risc0-zkvm = { version = "^2.3.1" }
 tracing-subscriber = { version = "0.3", features = ["env-filter"] }
 serde = "1.0"
+
+rand_core = { version = "0.6.4", features = ["getrandom"] }
+ed25519-dalek = { version = "2.0.0-rc.3", default-features = false, features = [
+  "rand_core",
+] }
