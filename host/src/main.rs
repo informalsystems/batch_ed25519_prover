@@ -23,22 +23,30 @@ fn main() {
     // creates an ExecutorEnvBuilder. When you're done adding input, call
     // ExecutorEnvBuilder::build().
 
-    let mut inputs = vec![];
+    let n_signatures = std::env::var("N_SIGNATURES")
+        .unwrap_or_else(|_| "1".to_string())
+        .parse::<usize>()
+        .expect("N_SIGNATURES must be a valid integer");
 
-    for _ in 0..2 {
-        // Generate a random ed25519 keypair and sign the message.
-        let signing_key: SigningKey = SigningKey::generate(&mut OsRng);
-        let verifying_key: VerifyingKey = signing_key.verifying_key();
-        let message =
-            b"This is a message that will be signed, and verified within the zkVM".to_vec();
-        let signature: Signature = signing_key.sign(&message);
+    let inputs = (0..n_signatures)
+        .map(|i| {
+            // Generate a random ed25519 keypair and sign the message.
+            let signing_key: SigningKey = SigningKey::generate(&mut OsRng);
+            let verifying_key: VerifyingKey = signing_key.verifying_key();
+            let message = format!(
+                "#{i}: This is a message that will be signed, and verified within the zkVM"
+            )
+            .as_bytes()
+            .to_vec();
+            let signature: Signature = signing_key.sign(&message);
 
-        inputs.push((
-            verifying_key.to_bytes(),
-            message.clone(),
-            signature.to_bytes().to_vec(),
-        ));
-    }
+            (
+                verifying_key.to_bytes(),
+                message.clone(),
+                signature.to_bytes().to_vec(),
+            )
+        })
+        .collect::<Vec<_>>();
 
     let env = ExecutorEnv::builder()
         .write(&inputs)
